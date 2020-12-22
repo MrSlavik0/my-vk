@@ -217,3 +217,5 @@ async function getUpdates(url) {
         body: null,         
         follow: 1 })).json();
 };
+
+module.exports = VK;
