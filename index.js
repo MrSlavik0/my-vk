@@ -32,7 +32,7 @@ class VK {
             })();
         }
         this.on = (type, callback) => {
-            spisok[type] = callback;
+            list[type] = callback;
         };
         this.startPolling = async () => {
             let a = await api('groups.getLongPollServer');
