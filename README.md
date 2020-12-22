@@ -1,5 +1,6 @@
-# js-vk
-js-vk - a convenient module for working with VK API
+js-vk
+=====================
+JS-VK - a convenient module for working with VK API
 =====================
 **`Installation`**
 ```node
@@ -22,4 +23,18 @@ console.log(result);
 vk.on('message_new', async (message) => {
 console.log(message);
 });
+```
+### `Keyboard`
+> The keyboard parameter is assigned to the messages.send method
+```node
+const params = { user_id: process.env.OWNER,
+message: "Test message",
+vk.keyboard([{ label: 'Text', color: 'blue', type: 'text', payload: {} }], { inlineKeyboard: true })
+};
+// The color parameter can take 4 values: blue (primary), white (white), red (negative), green (positive)
+// This keyboard has additional parameters inlineKeyboard and oneTime
+(async () => {
+const result = await vk.api('messages.send', params);
+console.log(result);
+})();
 ```
