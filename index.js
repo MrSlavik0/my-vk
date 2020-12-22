@@ -9,15 +9,13 @@ let options = {
 let list = {
 	"message_new": null,
 	"message_edit": null,
-	"message_action": null,
-	"debug": async (a) => {console.log(a)}
+	"message_action": null
 };
 
 let colors = { "red": "negative", "green": "positive", "blue": "primary", "while": "secondary" };
 
 class VK {
     constructor (params) {
-        this.start = Date.now();
         this.params = params;
         options.token = this.params.token;
         options.id = this.params.GroupId;
@@ -35,9 +33,9 @@ class VK {
             list[type] = callback;
         };
         this.startPolling = async () => {
-            let a = await api('groups.getLongPollServer');
-            await startPolling(options.token, options.GroupId, a.response);
-            return a.response;
+            let resultLongPoll = await api('groups.getLongPollServer');
+            await startPolling(options.token, options.GroupId, resultLongPoll.response);
+            return resultLongPoll.response;
         }
         this.api = async (method, p = {}) => {
             let res = await api(method, p);
@@ -96,7 +94,7 @@ let startPolling = async (token, group_id, a) => {
         a.ts = updates.ts;
     }
     updates.updates.map(async upd => {
-    if(!spisok[upd.type]) return;
+    if(!list[upd.type]) return;
     if(upd.type == 'message_new' || upd.type == 'message_edit' || upd.type == 'message_reply') {
         upd.object.message.send = async (text, params) => {
             if(typeof text == 'object' && !text.message && !text.attachment) text = JSON.stringify(text, null, '\t');
@@ -116,26 +114,6 @@ let startPolling = async (token, group_id, a) => {
                 await fetch(a.upload_url, { method: 'POST', body: form }).then(res => res.json()).then(async ans => {
                     ans = (await api("photos.saveMessagesPhoto",ans))[0];
                     resolve("photo"+ans.owner_id+"_"+ans.id+",");
-                })
-                })
-                
-            }));
-            return api("messages.send",{ peer_id: upd.object.message.peer_id, random_id: 0, ...params, attachment })
-        };
-        upd.object.message.sendDocuments = async (raw, params) => {
-            raw = !Array.isArray(raw) ? [raw] : raw;
-            const FormData = require('form-data');
-            let a = await api("docs.getMessagesUploadServer",{ peer_id: upd.object.message.peer_id });
-            const attachment = await Promise.all(raw.map(async x => {
-                return new Promise(async (resolve) => {
-                const form = new FormData();
-                let read = await fs.createReadStream(x);
-                form.append("file", read);
-                await fetch(a.upload_url, { method: 'POST', timeout: 0, body: form }).then(res => res.json()).then(async ans => {
-                    let name = x.split("/").length;
-                    ans = (await api("docs.save",{ ...ans, title: x.split("/")[name]  }));
-                    console.log(ans)
-                    resolve(ans.type+ans[ans.type].owner_id+"_"+ans[ans.type].id+",");
                 })
                 })
                 
