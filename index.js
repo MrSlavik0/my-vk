@@ -9,13 +9,15 @@ let options = {
 let list = {
 	"message_new": null,
 	"message_edit": null,
-	"message_action": null
+	"message_action": null,
+	"debug": async (a) => {console.log(a)}
 };
 
 let colors = { "red": "negative", "green": "positive", "blue": "primary", "while": "secondary" };
 
 class VK {
     constructor (params) {
+        this.start = Date.now();
         this.params = params;
         options.token = this.params.token;
         options.id = this.params.GroupId;
@@ -33,29 +35,33 @@ class VK {
             list[type] = callback;
         };
         this.startPolling = async () => {
-            let resultLongPoll = await api('groups.getLongPollServer');
-            await startPolling(options.token, options.GroupId, resultLongPoll.response);
-            return resultLongPoll.response;
+            let a = await api('groups.getLongPollServer');
+            await startPolling(options.token, options.GroupId, a.response);
+            return a.response;
         }
         this.api = async (method, p = {}) => {
             let res = await api(method, p);
             return res;
         }
-        this.keyboard = (key = [], paramsKeyboard = { oneTime: false, inlineKeyboard: false }) => {
+        this.keyboard = (KeyboardButtons = [], paramsKeyboard = { oneTime: false, inlineKeyboard: false }) => {
             let KEY = [];
-            key.map(x => {
-                let obj = { type: 'text', payload: {}, label: 'Text Keyboard' };
-                if(x.type) obj.type = x.type;
-                if(x.label) obj.label = x.label;
-                if(x.payload) obj.payload = x.payload;
-                KEY.push({ action: obj, color: colors[x.color] ? colors[x.color] : colors['blue'] });
+            let count = Number(0);
+            if(KeyboardButtons.length < 1) return `Too few buttons are specified.`;
+            if(KeyboardButtons.length >= 11) return `Too many buttons specified.`;
+            KeyboardButtons.map(x => {
+                KEY = new Array(...KEY, []), count += 1;
+                x.map(z => {
+                    let obj = { type: 'text', payload: {}, label: 'Text Keyboard' };
+                    if(z.type) obj.type = z.type;
+                    if(z.label) obj.label = z.label;
+                    if(z.payload) obj.payload = z.payload;
+                    KEY[count - 1].push({ action: obj, color: colors[z.color] ? colors[z.color] : colors['blue'] });
+                });
             });
             let KEYBOARD = {};
             if(paramsKeyboard.oneTime) KEYBOARD.one_time = true;
             if(paramsKeyboard.inlineKeyboard) KEYBOARD.inline = true;
-            KEYBOARD.buttons = [
-                KEY
-            ]
+            KEYBOARD.buttons = KEY;
             return JSON.stringify(KEYBOARD);
         }
     }
@@ -114,6 +120,26 @@ let startPolling = async (token, group_id, a) => {
                 await fetch(a.upload_url, { method: 'POST', body: form }).then(res => res.json()).then(async ans => {
                     ans = (await api("photos.saveMessagesPhoto",ans))[0];
                     resolve("photo"+ans.owner_id+"_"+ans.id+",");
+                })
+                })
+                
+            }));
+            return api("messages.send",{ peer_id: upd.object.message.peer_id, random_id: 0, ...params, attachment })
+        };
+        upd.object.message.sendDocuments = async (raw, params) => {
+            raw = !Array.isArray(raw) ? [raw] : raw;
+            const FormData = require('form-data');
+            let a = await api("docs.getMessagesUploadServer",{ peer_id: upd.object.message.peer_id });
+            const attachment = await Promise.all(raw.map(async x => {
+                return new Promise(async (resolve) => {
+                const form = new FormData();
+                let read = await fs.createReadStream(x);
+                form.append("file", read);
+                await fetch(a.upload_url, { method: 'POST', timeout: 0, body: form }).then(res => res.json()).then(async ans => {
+                    let name = x.split("/").length;
+                    ans = (await api("docs.save",{ ...ans, title: x.split("/")[name]  }));
+                    console.log(ans)
+                    resolve(ans.type+ans[ans.type].owner_id+"_"+ans[ans.type].id+",");
                 })
                 })
                 
