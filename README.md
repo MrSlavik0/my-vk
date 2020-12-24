@@ -29,9 +29,36 @@ console.log(message);
 ```node
 const params = { user_id: process.env.OWNER,
 message: "Test message",
-vk.keyboard([{ label: 'Text', color: 'blue', type: 'text', payload: {} }], { inlineKeyboard: true })
+vk.keyboard([[{ 
+  label: 'Keyboard #1',
+  color: 'blue',
+  type: 'text',
+  payload: {} },
+{ 
+  label: 'Keyboard #2',
+  color: 'blue',
+  type: 'text',
+  payload: {} 
+  }
+  ],
+    [
+      { 
+        label: 'Keyboard #3',
+        color: 'blue',
+        type: 'text',
+        payload: {} },
+      { 
+        label: 'Keyboard #4',
+        color: 'blue',
+        type: 'text',
+        payload: {} 
+       }
+     ]
+    ], 
+  { inlineKeyboard: true 
+  })
 };
-// The color parameter can take 4 values: blue (primary), white (white), red (negative), green (positive)
+// The color parameter can take 4 values: blue (primary), white (secondary), red (negative), green (positive)
 // This keyboard has additional parameters inlineKeyboard and oneTime
 (async () => {
 const result = await vk.api('messages.send', params);
