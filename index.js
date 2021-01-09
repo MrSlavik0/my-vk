@@ -16,20 +16,32 @@ let list = {
 let colors = { "red": "negative", "green": "positive", "blue": "primary", "while": "secondary" };
 
 class VK {
-    constructor (params) {
+    constructor (params = {}) {
         this.start = Date.now();
         this.params = params;
+        this.params.options = {};
         options.token = this.params.token;
         options.id = this.params.GroupId;
         if(this.VersionApi) {
         options.api = this.params.VersionApi;
         }
+        if(this.params.secretToken) {
+            this.params.token = "secret";
+            this.params.options.tokenPrivate = true;
+        }
         if(this.params.autoUpdates == true) {
+            this.params.options.startPolling = true;
             (async () => {
                 let a = await api('groups.getLongPollServer');
                 await startPolling(options.token, options.GroupId, a.response);
-                return a.response;
+                return 'Done!';
             })();
+        }
+        if(this.params.secretToken) {
+            delete this.params.secretToken;
+        }
+        if(this.params.autoUpdates) {
+            delete this.params.autoUpdates;
         }
         this.on = (type, callback) => {
             list[type] = callback;
@@ -37,7 +49,7 @@ class VK {
         this.startPolling = async () => {
             let a = await api('groups.getLongPollServer');
             await startPolling(options.token, options.GroupId, a.response);
-            return a.response;
+            return 'Done!';
         }
         this.api = async (method, p = {}) => {
             let res = await api(method, p);
