@@ -13,7 +13,9 @@ const VK = require("js-vk");
 const vk = new VK({ 
 token: process.env.TOKEN, 
 GroupId: process.env.GROUP, 
-autoUpdates: true });
+autoUpdates: true,
+secretToken: true
+});
 
 (async () => {
 const result = await vk.api('users.get', { user_id: 1 });
@@ -22,6 +24,9 @@ console.log(result);
 
 vk.on('message_new', async (message) => {
 console.log(message);
+await message.send('Hello World!');
+await message.edit(message.message.conversation_message_id + 1, 'Hello World 2!');
+return;
 });
 ```
 ### `Keyboard`
