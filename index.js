@@ -1,4 +1,5 @@
 let fetch = require('node-fetch');
+let fs = require("fs");
 
 let options = {
     token: "",
@@ -7,11 +8,15 @@ let options = {
 };
 
 let list = {
-	"message_new": null,
-	"message_edit": null,
-	"message_action": null,
-	"debug": async (a) => {console.log(a)}
+    "message_new": null,
+    "message_edit": null,
+    "message_action": null,
+    "debug": async (a) => {console.log(a)}
 };
+
+let logFile = __dirname + `/api.txt`;
+
+let months = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
 
 let colors = { "red": "negative", "green": "positive", "blue": "primary", "while": "secondary" };
 
@@ -37,6 +42,12 @@ class VK {
                 return 'Done!';
             })();
         }
+
+        if(!this.params.logs) {
+            this.params.logs = false;
+        } else {
+            console.log(`log file: ${logFile}`);
+        }
         if(this.params.secretToken) {
             delete this.params.secretToken;
         }
@@ -53,6 +64,11 @@ class VK {
         }
         this.api = async (method, p = {}) => {
             let res = await api(method, p);
+            if(this.params.logs == true) {
+                let data = new Date();
+                fs.appendFileSync(logFile, `[${data.getDate()} ${months[data.getUTCMonth()]} ${data.getFullYear()} ( ${Date.now()} )] => ${method}, ${JSON.stringify(p)}
+`);
+            }
             return res;
         }
         this.keyboard = (KeyboardButtons = [], paramsKeyboard = { oneTime: false, inlineKeyboard: false }) => {
