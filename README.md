@@ -14,7 +14,8 @@ const vk = new VK({
 token: process.env.TOKEN, 
 GroupId: process.env.GROUP, 
 autoUpdates: true,
-secretToken: true
+secretToken: true,
+logs: true // false if you do not want the to be written to a file
 });
 
 (async () => {
