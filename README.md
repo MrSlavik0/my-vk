@@ -67,7 +67,20 @@ vk.keyboard([[{
 // The color parameter can take 4 values: blue (primary), white (secondary), red (negative), green (positive)
 // This keyboard has additional parameters inlineKeyboard and oneTime
 (async () => {
+const params = {
+  message: "JS-VK!",
+  peer_id: vk.defaultPeerId + 1 || 2000000001
+}
 const result = await vk.api('messages.send', params);
+console.log(result);
+})();
+
+(async () => {
+const params = {
+  message: "JS-VK!",
+  peer_id: vk.defaultPeerId + 1 || 2000000001
+}
+const result = await vk.api.messages.send(params);
 console.log(result);
 })();
 ```
