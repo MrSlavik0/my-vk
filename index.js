@@ -4,7 +4,7 @@ let fs = require("fs");
 let options = {
     token: "",
     id: 0,
-    api: '5.126'
+    api: '5.131'
 };
 
 let list = {
@@ -20,13 +20,57 @@ let months = ["января", "февраля", "марта", "апреля", "�
 
 let colors = { "red": "negative", "green": "positive", "blue": "primary", "while": "secondary" };
 
+let groupMethods = [
+'account',
+'ads',
+'appWidgets',
+'apps',
+'audio',
+'auth',
+'board',
+'database',
+'docs',
+'fave',
+'friends',
+'gifts',
+'groups',
+'leads',
+'leadForms',
+'likes',
+'market',
+'messages',
+'newsfeed',
+'notes',
+'notifications',
+'orders',
+'pages',
+'photos',
+'places',
+'polls',
+'podcasts',
+'prettyCards',
+'search',
+'secure',
+'stats',
+'status',
+'storage',
+'stories',
+'streaming',
+'users',
+'utils',
+'video',
+'wall',
+'widgets',
+'junction'
+];
+
 class VK {
     constructor (params = {}) {
         this.start = Date.now();
         this.params = params;
         this.params.options = {};
+        this.defaultPeerId = 2000000000;
         options.token = this.params.token;
-        options.id = this.params.GroupId;
         if(this.VersionApi) {
         options.api = this.params.VersionApi;
         }
@@ -62,7 +106,8 @@ class VK {
             await startPolling(options.token, options.GroupId, a.response);
             return 'Done!';
         }
-        this.api = async (method, p = {}) => {
+        this.api = {
+            call: async (method, p = {}) => {
             let res = await api(method, p);
             if(this.params.logs == true) {
                 let data = new Date();
@@ -71,6 +116,25 @@ class VK {
             }
             return res;
         }
+    }
+    for (const group of groupMethods) {
+        const isMessagesGroup = group === 'messages';
+        this.api[group] = new Proxy(isMessagesGroup
+        ? {
+            send: (params = {}) => {
+            const messageParams = params.random_id === undefined
+            ? { ...params, random_id: `${Math.floor(Math.random() * 1e4)}${Date.now()}` }
+            : params;
+            return this.api.call('messages.send', messageParams);
+}
+}
+: {}, {
+get: isMessagesGroup
+? (obj, prop) => obj[prop] || (
+(params) => (this.api.call(`${group}.${prop}`, params)))
+: (obj, prop) => (params) => (this.api.call(`${group}.${prop}`, params))
+});
+}
         this.keyboard = (KeyboardButtons = [], paramsKeyboard = { oneTime: false, inlineKeyboard: false }) => {
             let KEY = [];
             let count = Number(0);
@@ -97,7 +161,7 @@ class VK {
 
 let api = async (method, p = {}) => {
     let url = `https://api.vk.com/method/${method}?`;
-    p = { v: options.api, group_id: options.id, access_token: options.token, random_id: Math.random(),  ...p };
+    p = { v: options.api, group_id: 181025518, access_token: options.token, random_id: Math.random(),  ...p };
     let o = [];
     for (let key in p) {
         if (p.hasOwnProperty(key)) {
